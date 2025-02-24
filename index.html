@@ -95,11 +95,18 @@
                         },
                         body: JSON.stringify({ index: rowIndex })
                     });
+
                     if (response.ok) {
-                        table.deleteRow(newRow.rowIndex - 1);
+                        const result = await response.json();
+                        if (result.success) {
+                            table.deleteRow(newRow.rowIndex);
+                        } else {
+                            alert('Errore durante l\'eliminazione');
+                        }
                     }
                 } catch (error) {
                     console.error('Errore durante l\'eliminazione:', error);
+                    alert('Errore durante l\'eliminazione: ' + error.message);
                 }
             };
             buttonCell.appendChild(deleteButton);
@@ -111,7 +118,7 @@
 
             const inputString = document.getElementById('inputString').value;
 
-            if (inputString.length > 0) {
+            if (inputString.length > 0 && inputString.length <= 5) {
                 try {
                     const response = await fetch('data.php', {
                         method: 'POST',
@@ -122,14 +129,22 @@
                     });
 
                     if (response.ok) {
-                        addRowToTable(inputString);
-                        document.getElementById('inputString').value = '';
+                        const result = await response.json();
+                        if (result.success) {
+                            addRowToTable(inputString);
+                            document.getElementById('inputString').value = '';
+                        } else {
+                            alert('Errore durante il salvataggio: ' + (result.error || 'Errore sconosciuto'));
+                        }
+                    } else {
+                        alert('Errore nella richiesta: ' + response.status);
                     }
                 } catch (error) {
                     console.error('Errore durante il salvataggio:', error);
+                    alert('Errore durante il salvataggio: ' + error.message);
                 }
             } else {
-                alert('Inserisci una stringa valida.');
+                alert('Inserisci una stringa valida (1-5 caratteri).');
             }
         });
 
