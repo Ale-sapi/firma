@@ -1,68 +1,68 @@
 <?php
 header('Content-Type: application/json');
 
-// Percorso del file JSON che memorizza i dati
-$file = 'strings.json';
+// File dove verranno salvate le stringhe
+$file = 'stringhe.json';
 
-// Funzione per leggere i dati dal file
-function readData() {
+// Funzione per leggere le stringhe dal file
+function leggiStringhe() {
     global $file;
     if (file_exists($file)) {
-        $content = file_get_contents($file);
-        return json_decode($content, true) ?: [];
+        $contenuto = file_get_contents($file);
+        return json_decode($contenuto) ?: [];
     }
     return [];
 }
 
-// Funzione per salvare i dati nel file
-function saveData($data) {
+// Funzione per salvare le stringhe nel file
+function salvaStringhe($stringhe) {
     global $file;
-    file_put_contents($file, json_encode($data));
+    file_put_contents($file, json_encode($stringhe));
 }
 
-// Gestione delle richieste in base al metodo HTTP
+// Gestione delle richieste
 switch ($_SERVER['REQUEST_METHOD']) {
     case 'GET':
         // Restituisce tutte le stringhe
-        echo json_encode(readData());
+        echo json_encode(leggiStringhe());
         break;
 
     case 'POST':
         // Aggiunge una nuova stringa
-        $data = json_decode(file_get_contents('php://input'), true);
-        if (isset($data['string']) && strlen($data['string']) <= 5) {
-            $strings = readData();
-            $strings[] = $data['string'];
-            saveData($strings);
+        $data = json_decode(file_get_contents('php://input'));
+        if (isset($data->stringa) && strlen($data->stringa) <= 5) {
+            $stringhe = leggiStringhe();
+            $stringhe[] = $data->stringa;
+            salvaStringhe($stringhe);
             echo json_encode(['success' => true]);
         } else {
             http_response_code(400);
-            echo json_encode(['error' => 'Stringa non valida']);
+            echo json_encode(['success' => false, 'error' => 'Stringa non valida']);
         }
         break;
 
     case 'DELETE':
         // Elimina una stringa
-        $data = json_decode(file_get_contents('php://input'), true);
-        if (isset($data['index'])) {
-            $strings = readData();
-            if (isset($strings[$data['index']])) {
-                array_splice($strings, $data['index'], 1);
-                saveData($strings);
+        $data = json_decode(file_get_contents('php://input'));
+        if (isset($data->stringa)) {
+            $stringhe = leggiStringhe();
+            $index = array_search($data->stringa, $stringhe);
+            if ($index !== false) {
+                array_splice($stringhe, $index, 1);
+                salvaStringhe($stringhe);
                 echo json_encode(['success' => true]);
             } else {
                 http_response_code(404);
-                echo json_encode(['error' => 'Indice non trovato']);
+                echo json_encode(['success' => false, 'error' => 'Stringa non trovata']);
             }
         } else {
             http_response_code(400);
-            echo json_encode(['error' => 'Indice non specificato']);
+            echo json_encode(['success' => false, 'error' => 'Stringa non specificata']);
         }
         break;
 
     default:
         http_response_code(405);
-        echo json_encode(['error' => 'Metodo non permesso']);
-        break;
+        echo json_encode(['success' => false, 'error' => 'Metodo non permesso']);
 }
 ?> 

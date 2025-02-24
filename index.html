@@ -3,154 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabella con Form</title>
+    <title>Gestione Stringhe</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 20px;
         }
-        table, th, td {
-            border: 1px solid black;
-        }
+        
         th, td {
-            padding: 10px;
-            text-align: center;
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
         }
-        input[type="text"] {
-            width: 100px;
-            padding: 5px;
+        
+        th {
+            background-color: #f4f4f4;
         }
-        button {
-            padding: 5px 10px;
-            background-color: red;
+        
+        .delete-btn {
+            background-color: #ff4444;
             color: white;
             border: none;
+            padding: 5px 10px;
             cursor: pointer;
+            border-radius: 3px;
         }
-        button:hover {
-            background-color: darkred;
+        
+        .delete-btn:hover {
+            background-color: #cc0000;
+        }
+        
+        form {
+            margin: 20px 0;
+        }
+        
+        input[type="text"] {
+            padding: 5px;
+            margin-right: 10px;
+        }
+        
+        button[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        
+        button[type="submit"]:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
-
-    <h2>Aggiungi una riga alla tabella</h2>
-
-    <!-- Form per inserire una nuova stringa -->
-    <form id="form">
-        <label for="inputString">Inserisci una stringa (max 5 caratteri):</label>
-        <input type="text" id="inputString" name="inputString" maxlength="5" required>
+    <h2>Gestione Stringhe</h2>
+    
+    <form id="stringForm">
+        <input type="text" id="stringInput" maxlength="5" placeholder="Inserisci stringa (max 5 caratteri)" required>
         <button type="submit">Aggiungi</button>
     </form>
 
-    <h3>Tabella dei dati:</h3>
-
-    <!-- Tabella dove le righe saranno aggiunte -->
-    <table id="dataTable">
+    <table>
         <thead>
             <tr>
                 <th>Stringa</th>
                 <th>Azioni</th>
             </tr>
         </thead>
-        <tbody>
-            <!-- Le righe verranno aggiunte qui dinamicamente -->
+        <tbody id="tableBody">
+            <!-- Le righe verranno inserite qui dinamicamente -->
         </tbody>
     </table>
 
     <script>
-        // Funzione per caricare i dati iniziali
-        async function loadInitialData() {
-            try {
-                const response = await fetch('data.php');
-                const data = await response.json();
-                data.forEach(stringa => addRowToTable(stringa));
-            } catch (error) {
-                console.error('Errore nel caricamento dei dati:', error);
-            }
-        }
-
-        // Funzione per aggiungere una riga alla tabella
-        async function addRowToTable(stringa) {
-            const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-            const rowIndex = table.rows.length;
-
-            // Crea una nuova riga
-            const newRow = table.insertRow();
-
-            // Crea la cella per la stringa
-            const stringCell = newRow.insertCell(0);
-            stringCell.textContent = stringa;
-
-            // Crea la cella per il bottone "Cancella"
-            const buttonCell = newRow.insertCell(1);
-            const deleteButton = document.createElement('button');
-            deleteButton.textContent = 'Cancella';
-            deleteButton.onclick = async function() {
-                try {
-                    const response = await fetch('data.php', {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ index: rowIndex })
-                    });
-
-                    if (response.ok) {
-                        const result = await response.json();
-                        if (result.success) {
-                            table.deleteRow(newRow.rowIndex);
-                        } else {
-                            alert('Errore durante l\'eliminazione');
-                        }
-                    }
-                } catch (error) {
-                    console.error('Errore durante l\'eliminazione:', error);
-                    alert('Errore durante l\'eliminazione: ' + error.message);
-                }
-            };
-            buttonCell.appendChild(deleteButton);
-        }
-
-        // Gestisce l'invio del form
-        document.getElementById('form').addEventListener('submit', async function(event) {
-            event.preventDefault();
-
-            const inputString = document.getElementById('inputString').value;
-
-            if (inputString.length > 0 && inputString.length <= 5) {
+        document.getElementById('stringForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const input = document.getElementById('stringInput');
+            const stringa = input.value.trim();
+            
+            if (stringa.length > 0 && stringa.length <= 5) {
                 try {
                     const response = await fetch('data.php', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
+                            'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ string: inputString })
+                        body: JSON.stringify({ stringa: stringa })
                     });
-
+                    
                     if (response.ok) {
                         const result = await response.json();
                         if (result.success) {
-                            addRowToTable(inputString);
-                            document.getElementById('inputString').value = '';
-                        } else {
-                            alert('Errore durante il salvataggio: ' + (result.error || 'Errore sconosciuto'));
+                            aggiungiRiga(stringa);
+                            input.value = '';
                         }
-                    } else {
-                        alert('Errore nella richiesta: ' + response.status);
                     }
                 } catch (error) {
-                    console.error('Errore durante il salvataggio:', error);
-                    alert('Errore durante il salvataggio: ' + error.message);
+                    console.error('Errore:', error);
                 }
-            } else {
-                alert('Inserisci una stringa valida (1-5 caratteri).');
             }
         });
 
-        // Carica i dati quando la pagina viene aperta
-        document.addEventListener('DOMContentLoaded', loadInitialData);
-    </script>
+        function aggiungiRiga(stringa) {
+            const tbody = document.getElementById('tableBody');
+            const row = tbody.insertRow();
+            
+            const cellaStringa = row.insertCell(0);
+            cellaStringa.textContent = stringa;
+            
+            const cellaAzioni = row.insertCell(1);
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Elimina';
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.onclick = async function() {
+                try {
+                    const response = await fetch('data.php', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ stringa: stringa })
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            row.remove();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Errore:', error);
+                }
+            };
+            cellaAzioni.appendChild(deleteBtn);
+        }
 
+        // Carica le stringhe esistenti all'avvio
+        async function caricaStringhe() {
+            try {
+                const response = await fetch('data.php');
+                if (response.ok) {
+                    const stringhe = await response.json();
+                    stringhe.forEach(stringa => aggiungiRiga(stringa));
+                }
+            } catch (error) {
+                console.error('Errore nel caricamento:', error);
+            }
+        }
+
+        // Carica le stringhe quando la pagina viene caricata
+        document.addEventListener('DOMContentLoaded', caricaStringhe);
+    </script>
 </body>
 </html>
