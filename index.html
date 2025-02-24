@@ -3,193 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestione Stringhe</title>
+    <title>Tabella con Aggiunta e Cancellazione</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-        
         table {
-            width: 100%;
+            width: 50%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin: 20px auto;
         }
-        
         th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
         }
-        
-        th {
-            background-color: #f4f4f4;
-        }
-        
-        .delete-btn {
-            background-color: #ff4444;
+        button {
+            background-color: red;
             color: white;
             border: none;
             padding: 5px 10px;
             cursor: pointer;
-            border-radius: 3px;
         }
-        
-        .delete-btn:hover {
-            background-color: #cc0000;
-        }
-        
-        form {
-            margin: 20px 0;
-        }
-        
-        input[type="text"] {
-            padding: 5px;
-            margin-right: 10px;
-        }
-        
-        button[type="submit"] {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-        
-        button[type="submit"]:hover {
-            background-color: #45a049;
-        }
-
-        .error {
-            color: red;
-            margin: 10px 0;
+        button:hover {
+            background-color: darkred;
         }
     </style>
 </head>
 <body>
-    <h2>Gestione Stringhe</h2>
-    
-    <form id="stringForm">
-        <input type="text" id="stringInput" maxlength="5" placeholder="Inserisci stringa (max 5 caratteri)" required>
+
+    <h2 style="text-align:center;">Aggiungi una stringa alla tabella</h2>
+
+    <!-- Form per l'inserimento della stringa -->
+    <form id="form" style="text-align:center;">
+        <input type="text" id="inputString" placeholder="Inserisci una stringa di 5 numeri" maxlength="5" required>
         <button type="submit">Aggiungi</button>
     </form>
-    <div id="errorMessage" class="error"></div>
 
-    <table>
+    <!-- Tabella per visualizzare le stringhe e il bottone per eliminarle -->
+    <table id="table">
         <thead>
             <tr>
+                <th>Elimina</th>
                 <th>Stringa</th>
-                <th>Azioni</th>
             </tr>
         </thead>
-        <tbody id="tableBody">
-            <!-- Le righe verranno inserite qui dinamicamente -->
+        <tbody>
+            <!-- Le righe verranno aggiunte dinamicamente qui -->
         </tbody>
     </table>
 
     <script>
-        const errorDiv = document.getElementById('errorMessage');
+        // Array per memorizzare i dati
+        let tableData = JSON.parse(localStorage.getItem("tableData")) || [];
 
-        function mostraErrore(messaggio) {
-            errorDiv.textContent = messaggio;
-            setTimeout(() => {
-                errorDiv.textContent = '';
-            }, 3000);
+        // Funzione per aggiornare la tabella
+        function updateTable() {
+            const tableBody = document.getElementById("table").getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = ""; // Pulisce la tabella
+
+            // Aggiunge ogni riga dell'array alla tabella
+            tableData.forEach((data, index) => {
+                const row = tableBody.insertRow();
+                
+                // Aggiunge la colonna per il bottone di eliminazione
+                const cell1 = row.insertCell(0);
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "Cancella";
+                deleteButton.onclick = function() {
+                    deleteRow(index);
+                };
+                cell1.appendChild(deleteButton);
+
+                // Aggiunge la colonna con la stringa
+                const cell2 = row.insertCell(1);
+                cell2.textContent = data;
+            });
         }
 
-        document.getElementById('stringForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const input = document.getElementById('stringInput');
-            const stringa = input.value.trim();
+        // Funzione per aggiungere una nuova riga alla tabella
+        document.getElementById("form").addEventListener("submit", function(event) {
+            event.preventDefault();
             
-            if (stringa.length === 0) {
-                mostraErrore('Inserisci una stringa');
-                return;
-            }
+            const inputString = document.getElementById("inputString").value;
 
-            if (stringa.length > 5) {
-                mostraErrore('La stringa non può superare 5 caratteri');
-                return;
-            }
-
-            try {
-                const response = await fetch('data.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ stringa: stringa })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    aggiungiRiga(stringa);
-                    input.value = '';
-                } else {
-                    mostraErrore(result.error || 'Errore durante il salvataggio');
-                }
-            } catch (error) {
-                console.error('Errore:', error);
-                mostraErrore('Errore di connessione al server');
+            // Verifica che la stringa contenga esattamente 5 numeri
+            if (inputString.match(/^\d{5}$/)) {
+                tableData.push(inputString); // Aggiunge la stringa all'array
+                localStorage.setItem("tableData", JSON.stringify(tableData)); // Salva i dati in localStorage
+                document.getElementById("inputString").value = ''; // Svuota il campo di input
+                updateTable(); // Rende visibile l'array aggiornato nella tabella
+            } else {
+                alert("La stringa deve contenere esattamente 5 numeri.");
             }
         });
 
-        function aggiungiRiga(stringa) {
-            const tbody = document.getElementById('tableBody');
-            const row = tbody.insertRow();
-            
-            const cellaStringa = row.insertCell(0);
-            cellaStringa.textContent = stringa;
-            
-            const cellaAzioni = row.insertCell(1);
-            const deleteBtn = document.createElement('button');
-            deleteBtn.textContent = 'Elimina';
-            deleteBtn.className = 'delete-btn';
-            deleteBtn.onclick = async function() {
-                try {
-                    const response = await fetch('data.php', {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ stringa: stringa })
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        row.remove();
-                    } else {
-                        mostraErrore(result.error || 'Errore durante l\'eliminazione');
-                    }
-                } catch (error) {
-                    console.error('Errore:', error);
-                    mostraErrore('Errore di connessione al server');
-                }
-            };
-            cellaAzioni.appendChild(deleteBtn);
+        // Funzione per cancellare una riga
+        function deleteRow(index) {
+            tableData.splice(index, 1); // Rimuove l'elemento dall'array
+            localStorage.setItem("tableData", JSON.stringify(tableData)); // Salva i dati aggiornati
+            updateTable(); // Rende visibile l'array aggiornato nella tabella
         }
 
-        async function caricaStringhe() {
-            try {
-                const response = await fetch('data.php');
-                if (response.ok) {
-                    const stringhe = await response.json();
-                    stringhe.forEach(stringa => aggiungiRiga(stringa));
-                } else {
-                    mostraErrore('Errore nel caricamento delle stringhe');
-                }
-            } catch (error) {
-                console.error('Errore nel caricamento:', error);
-                mostraErrore('Errore di connessione al server');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', caricaStringhe);
+        // Carica la tabella al caricamento della pagina
+        window.onload = updateTable;
     </script>
+
 </body>
 </html>
