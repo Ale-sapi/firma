@@ -1,0 +1,23 @@
+# File di sistema
+.DS_Store
+Thumbs.db
+
+# File di ambiente
+.env
+
+# Directory di dipendenze
+/vendor/
+/node_modules/
+
+# File di log
+*.log
+
+# File di configurazione IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# File temporanei
+*.tmp
+*.temp 

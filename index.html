@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabella con Form</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        input[type="text"] {
+            width: 100px;
+            padding: 5px;
+        }
+        button {
+            padding: 5px 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Aggiungi una riga alla tabella</h2>
+
+    <!-- Form per inserire una nuova stringa -->
+    <form id="form">
+        <label for="inputString">Inserisci una stringa (max 5 caratteri):</label>
+        <input type="text" id="inputString" name="inputString" maxlength="5" required>
+        <button type="submit">Aggiungi</button>
+    </form>
+
+    <h3>Tabella dei dati:</h3>
+
+    <!-- Tabella dove le righe saranno aggiunte -->
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>Stringa</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Le righe verranno aggiunte qui dinamicamente -->
+        </tbody>
+    </table>
+
+    <script>
+        // Funzione per caricare i dati iniziali
+        async function loadInitialData() {
+            try {
+                const response = await fetch('data.php');
+                const data = await response.json();
+                data.forEach(stringa => addRowToTable(stringa));
+            } catch (error) {
+                console.error('Errore nel caricamento dei dati:', error);
+            }
+        }
+
+        // Funzione per aggiungere una riga alla tabella
+        async function addRowToTable(stringa) {
+            const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+            const rowIndex = table.rows.length;
+
+            // Crea una nuova riga
+            const newRow = table.insertRow();
+
+            // Crea la cella per la stringa
+            const stringCell = newRow.insertCell(0);
+            stringCell.textContent = stringa;
+
+            // Crea la cella per il bottone "Cancella"
+            const buttonCell = newRow.insertCell(1);
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Cancella';
+            deleteButton.onclick = async function() {
+                try {
+                    const response = await fetch('data.php', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ index: rowIndex })
+                    });
+                    if (response.ok) {
+                        table.deleteRow(newRow.rowIndex - 1);
+                    }
+                } catch (error) {
+                    console.error('Errore durante l\'eliminazione:', error);
+                }
+            };
+            buttonCell.appendChild(deleteButton);
+        }
+
+        // Gestisce l'invio del form
+        document.getElementById('form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const inputString = document.getElementById('inputString').value;
+
+            if (inputString.length > 0) {
+                try {
+                    const response = await fetch('data.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ string: inputString })
+                    });
+
+                    if (response.ok) {
+                        addRowToTable(inputString);
+                        document.getElementById('inputString').value = '';
+                    }
+                } catch (error) {
+                    console.error('Errore durante il salvataggio:', error);
+                }
+            } else {
+                alert('Inserisci una stringa valida.');
+            }
+        });
+
+        // Carica i dati quando la pagina viene aperta
+        document.addEventListener('DOMContentLoaded', loadInitialData);
+    </script>
+
+</body>
+</html>
