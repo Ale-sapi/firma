@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form di Invio</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Monoton&family=Press+Start+2P&family=Rubik+Glitch&family=Wallpoet&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400&family=Monoton&family=Press+Start+2P&family=Rubik+Glitch&family=Wallpoet&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Quantico:wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Exo:wght@700&display=swap');
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(45deg, #6c5ce7, #a367dc, #00a8ff);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Overlay nero semi-trasparente */
+            z-index: 0;
+        }
+
+        .background-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .shape {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            transform-style: preserve-3d;
+            animation: float 10s ease-in-out infinite;
+        }
+
+        .cube, .pyramid, .sphere, .cone {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            transform-style: preserve-3d;
+        }
+
+        .cube {
+            transform: rotateX(45deg) rotateY(45deg);
+        }
+
+        .pyramid {
+            transform: rotateX(45deg) rotateY(45deg);
+        }
+
+        .sphere {
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .cone {
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-bottom: 50px solid rgba(255, 255, 255, 0.1);
+            transform: rotateX(45deg) rotateY(45deg);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .cube-face, .pyramid-face {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .cube-face.front  { transform: translateZ(25px); }
+        .cube-face.back   { transform: rotateY(180deg) translateZ(25px); }
+        .cube-face.right  { transform: rotateY(90deg) translateZ(25px); }
+        .cube-face.left   { transform: rotateY(-90deg) translateZ(25px); }
+        .cube-face.top    { transform: rotateX(90deg) translateZ(25px); }
+        .cube-face.bottom { transform: rotateX(-90deg) translateZ(25px); }
+
+        .pyramid-face.front  { transform: translateZ(25px) rotateX(60deg); }
+        .pyramid-face.left   { transform: rotateY(-90deg) translateZ(25px) rotateX(60deg); }
+        .pyramid-face.right  { transform: rotateY(90deg) translateZ(25px) rotateX(60deg); }
+        .pyramid-face.bottom { transform: rotateX(90deg) translateZ(25px); }
+
+        .shape:nth-child(1) { top: 10%; left: 5%; animation-duration: 12s; }
+        .shape:nth-child(2) { top: 20%; left: 20%; animation-duration: 14s; }
+        .shape:nth-child(3) { top: 30%; left: 35%; animation-duration: 16s; }
+        .shape:nth-child(4) { top: 40%; left: 50%; animation-duration: 18s; }
+        .shape:nth-child(5) { top: 50%; left: 65%; animation-duration: 20s; }
+        .shape:nth-child(6) { top: 60%; left: 80%; animation-duration: 22s; }
+        .shape:nth-child(7) { top: 70%; left: 15%; animation-duration: 24s; }
+        .shape:nth-child(8) { top: 80%; left: 30%; animation-duration: 26s; }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-20px) translateX(20px) rotate(90deg);
+            }
+            50% {
+                transform: translateY(20px) translateX(-20px) rotate(180deg);
+            }
+            75% {
+                transform: translateY(-20px) translateX(-20px) rotate(270deg);
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .clock {
+            font-family: 'Exo', sans-serif;
+            font-size: 3em;
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 0 0 15px rgba(108, 92, 231, 0.5);
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+            line-height: 1;
+            font-weight: 700;
+            background: rgba(108, 92, 231, 0.1);
+            padding: 5px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .title {
+            font-size: 5.5em;
+            color: #fff;
+            position: relative;
+            margin-bottom: 40px;
+            min-height: 1.2em;
+            letter-spacing: 4px;
+            text-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+
+        .title::after {
+            content: '|';
+            position: absolute;
+            right: -15px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            width: 300px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 24px);
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #6c5ce7;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            background: #6c5ce7;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #a367dc;
+        }
+
+        .message {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: rgba(108, 92, 231, 0.1);
+            color: #6c5ce7;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+        }
+
+        .success {
+            background-color: rgba(108, 92, 231, 0.1);
+            color: #6c5ce7;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+        }
+
+        iframe {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-overlay"></div>
+    <div class="background-shapes">
+        <script>
+            function getRandomPosition() {
+                const top = Math.random() * 90; // Random top position between 0% and 90%
+                const left = Math.random() * 90; // Random left position between 0% and 90%
+                return { top: `${top}%`, left: `${left}%` };
+            }
+
+            const shapes = ['cube', 'pyramid', 'sphere', 'cone'];
+            const shapesContainer = document.querySelector('.background-shapes');
+
+            for (let i = 0; i < 8; i++) {
+                const shapeType = shapes[Math.floor(Math.random() * shapes.length)];
+                const position = getRandomPosition();
+                const shapeElement = document.createElement('div');
+                shapeElement.className = 'shape';
+                shapeElement.style.top = position.top;
+                shapeElement.style.left = position.left;
+
+                if (shapeType === 'cube' || shapeType === 'pyramid') {
+                    const shapeInner = document.createElement('div');
+                    shapeInner.className = shapeType;
+                    const faces = shapeType === 'cube' ? ['front', 'back', 'right', 'left', 'top', 'bottom'] : ['front', 'left', 'right', 'bottom'];
+                    faces.forEach(face => {
+                        const faceElement = document.createElement('div');
+                        faceElement.className = `${shapeType}-face ${face}`;
+                        shapeInner.appendChild(faceElement);
+                    });
+                    shapeElement.appendChild(shapeInner);
+                } else {
+                    shapeElement.className += ` ${shapeType}`;
+                }
+
+                shapesContainer.appendChild(shapeElement);
+            }
+        </script>
+    </div>
+    
+    <div class="container">
+        <div class="title" id="animated-title"></div>
+        <div class="form-container">
+            <div class="clock" id="clock"></div>
+            <form id="myForm" action="http://5aint.pythonanywhere.com/post" method="POST" target="hidden-iframe">
+                <input type="text" name="id" placeholder="Inserisci ID" required>
+                <button type="submit">Invia</button>
+                <div id="message" class="message success">Invio completato con successo!</div>
+            </form>
+        </div>
+    </div>
+    <iframe name="hidden-iframe"></iframe>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('it-IT');
+            document.getElementById('clock').textContent = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        const fonts = [
+            'Monoton',       // Font display con effetto neon
+            'Press Start 2P',// Font pixel/retro-gaming
+            'Rubik Glitch',  // Font con effetto glitch
+            'Wallpoet',      // Font geometrico/tech
+            'Teko'           // Font condensato e moderno
+        ];
+        const text = "FIRMA";
+        let currentFont = 0;
+        let animationInProgress = false;
+
+        function animateTitle() {
+            if (animationInProgress) return;
+            animationInProgress = true;
+            
+            const titleElement = document.getElementById('animated-title');
+            let currentText = '';
+            let currentIndex = 0;
+            
+            function writeText() {
+                if (currentIndex < text.length) {
+                    currentText += text[currentIndex];
+                    titleElement.textContent = currentText;
+                    currentIndex++;
+                    setTimeout(writeText, 200);
+                } else {
+                    setTimeout(eraseText, 2000);
+                }
+            }
+
+            function eraseText() {
+                if (currentText.length > 0) {
+                    currentText = currentText.slice(0, -1);
+                    titleElement.textContent = currentText;
+                    setTimeout(eraseText, 100);
+                } else {
+                    currentFont = (currentFont + 1) % fonts.length;
+                    titleElement.style.fontFamily = fonts[currentFont];
+                    setTimeout(() => {
+                        animationInProgress = false;
+                        animateTitle();
+                    }, 300);
+                }
+            }
+
+            titleElement.style.fontFamily = fonts[currentFont];
+            writeText();
+        }
+
+        animateTitle();
+
+        const form = document.getElementById('myForm');
+        const messageDiv = document.getElementById('message');
+
+        form.onsubmit = function() {
+            setTimeout(function() {
+                messageDiv.style.display = 'block';
+                form.reset();
+            }, 100);
+        };
+    </script>
+</body>
+</html> 
