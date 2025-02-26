@@ -229,6 +229,13 @@
         iframe {
             display: none;
         }
+
+        .error-message {
+            display: none;
+            color: #ff4d4d;
+            margin-top: 10px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -279,6 +286,8 @@
                 <input type="text" name="id" placeholder="Inserisci ID" required>
                 <button type="submit">Invia</button>
                 <div id="message" class="message success">Invio completato con successo!</div>
+                <div id="error-message" class="error-message">Per favore, inserisci esattamente 5 numeri consecutivi.</div>
+                <button id="reuse-last-response" style="display: none; margin-top: 10px;">Reinvia l'ultima risposta</button>
             </form>
         </div>
     </div>
@@ -344,15 +353,44 @@
 
         animateTitle();
 
-        const form = document.getElementById('myForm');
-        const messageDiv = document.getElementById('message');
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('myForm');
+            const input = form.querySelector('input[name="id"]');
+            const messageDiv = document.getElementById('message');
+            const errorMessageDiv = document.getElementById('error-message');
+            const reuseButton = document.getElementById('reuse-last-response');
 
-        form.onsubmit = function() {
-            setTimeout(function() {
-                messageDiv.style.display = 'block';
-                form.reset();
-            }, 100);
-        };
+            // Controllo per verificare che l'input sia composto da 5 numeri consecutivi
+            form.onsubmit = function(event) {
+                const value = input.value;
+                if (!/^\d{5}$/.test(value)) {
+                    event.preventDefault();
+                    errorMessageDiv.style.display = 'block';
+                    return false;
+                }
+
+                // Nascondi il messaggio di errore se l'input è corretto
+                errorMessageDiv.style.display = 'none';
+
+                // Memorizza la risposta in locale
+                localStorage.setItem('lastResponse', value);
+
+                setTimeout(function() {
+                    messageDiv.style.display = 'block';
+                    form.reset();
+                }, 100);
+            };
+
+            // Controlla se c'è una risposta memorizzata
+            const lastResponse = localStorage.getItem('lastResponse');
+            if (lastResponse) {
+                reuseButton.style.display = 'block';
+                reuseButton.onclick = function() {
+                    input.value = lastResponse;
+                    form.submit();
+                };
+            }
+        });
     </script>
 </body>
 </html> 
